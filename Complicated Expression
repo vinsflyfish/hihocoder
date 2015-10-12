@@ -1,0 +1,223 @@
+时间限制:50000ms
+单点时限:5000ms
+内存限制:256MB
+描述
+在lisp语言中，表达式都用前缀法表示，例如，1 + 2 在lisp中使用(+ 1 2)来表示，其中，表达式的括号是必需的。Bob 想实现一种类 lisp 的脚本语言，这个语言中的表达式是这样定义的：
+
+1、每个表达式的形式都是 ( operator arg_1 arg_2 ... )，即由左括号，运算符，运算数，和右括号组成。
+
+2、运算符包括三种，分别是'+', '-', '*'。
+
+3、运算符如果可以接受一个运算数，就称为一元运算符，如果可以接受两个运算数，就称为二元运算符，如果可以接受三个及以上运算数，就称为多元运算符。
+
++ 可以是一元，二元，乃至多元运算符。
+
+(+ 9) 表示正整数9；
+
+(+ 1 2) 代表 1 + 2；
+
+(+ 1 2 3 4) 代表 1, 2, 3, 4 的连加和。
+
+- 可以是一元或者二元运算符。
+
+(- 9) 表示整数-9；
+
+(- 5 4) 代表 5 - 4。
+
+* 可以是二元运算符或者多元运算符。
+
+(* 2 3) 代表 2 * 3；
+
+(* 1 2 3 4) 代表 1 * 2 * 3 * 4。
+
+4、运算数可以是一个正整数，或者0，还可以是另外一个表达式，例如
+
+(+ (* 2 3) 1) 也是一个合法的表达式，代表了 2 * 3 + 1
+
+5、运算符与运算数之间，运算数与运算数相互之间都以空格进行分隔。在不产生歧义的情况下，空格也可以省略。例如，
+
+(+ 2 3) 和 ( +2 3) 都被认为是合法的输入，且有相同的意义，代表 2 + 3。(+ 23)也是一个合法的输入，但其代表的是正整数23。
+
+输入
+输入由多行组成，第一行包含一个正整数T(T <= 5000)。代表共包含T组测试数据。
+
+接下来会有T行输入。每一行包含一个表达式。这个表达式可能是一个合法的表达式，也可能是不合法的表达式。
+
+每行数据所包含的字符数，不超过1000000。
+
+输入数据中的数字全部是十进制正整数或者0，而且正整数的值不会大于65535。
+
+输入中的表达式只包含三种不同类型的错误，除此之外的情况，都不必考虑。
+
+第一类错误，括号不匹配，例如
+
+(+ (* 2 3) 1)) 多了一个右括号;
+
++ 2 3 缺少括号等。
+
+第二类错误，运算符缺失，例如
+
+(2 3) 没有运算符。
+
+第三类错误，运算符与数字不匹配，例如
+
+(- 1 2 3)，由于 - 只能接受最多两个算数，所以这也是一个不合法的表达式。
+
+输出
+对于合法的表达式，请输出表达式的值，对于不合法的表达式，请输出“invalid expression”。
+
+可以假设最后的结果不超过32位整数的表示范围，但不保证在某些情况下，计算的中间值全部不超过32位整数的表示范围。
+
+样例输入
+5
+(+ 1 (* 2 3)))
+(2 3)
+(- 3 2 1)
+(+ (+ 1 2) (* 2 3) (- 2 1))
+(- 2)
+样例输出
+invalid expression
+invalid expression
+invalid expression
+10
+-2
+
+#include<iostream>
+#include<vector>
+#include<cstdlib>
+#include<string>
+#include<cstdio>
+#include<algorithm>
+#include<stack>
+
+using namespace std;
+
+void solved(const string &str){
+	const string invalidStr = "invalid expression";
+	stack<int> current;
+	stack<int> lastNum;
+	stack<char> lastOp;
+	stack<int> lastCount;
+	int index = 0;
+	char curop = '+';
+	int currenval = 0;
+	int curruntcount = 0;
+	bool bValid = true;
+	while (index < str.size()){
+		if (str[index] == '('){
+			lastOp.push(curop);
+			lastNum.push(currenval);
+			lastCount.push(curruntcount);
+			currenval = 0;
+			curruntcount = 0;
+			curop = ' ';
+			++index;
+		}
+		else if (str[index] == ')'){
+			if (curruntcount == 1 && curop == '-') currenval = -currenval;
+			if (!lastOp.empty()){
+				curop = lastOp.top(); lastOp.pop();
+			}
+			else{
+				bValid = false;
+				break;
+			}
+			
+			if (curop == '+'){
+				currenval = (lastNum.empty() ? 0 : lastNum.top()) + currenval;
+				curruntcount = (lastCount.empty() ? 0 : lastCount.top()) + 1;
+				if (!lastNum.empty()){
+					lastNum.pop();
+					lastCount.pop();
+				}
+			}
+			else if (curop == '-'){
+				currenval = lastNum.top() - currenval;
+				if (curruntcount > 2 || curruntcount < 1) {
+					bValid = false;
+					break;
+				}
+				curruntcount = lastCount.top() + 1;
+				lastNum.pop();
+				lastCount.pop();
+			}
+			else if(curop=='*'){
+				currenval = lastNum.top() * currenval;
+				if (curruntcount < 2) {
+					bValid = false;
+					break;
+				}
+				curruntcount = lastCount.top() + 1;
+				lastNum.pop();
+				lastCount.pop();
+			}
+			else{
+				bValid = false;
+				break;
+			}
+			++index;
+		}
+		else if (str[index] == '+'){
+			//[1...n]
+			curop = '+';
+			++index;
+		}
+		else if (str[index] == '-'){
+			//[1..2]
+			curop = '-';
+			++index;
+		}
+		else if(str[index] == '*'){// *
+			//[2..n]
+			curop = '*';
+			++index;
+		}
+		else if(str[index]>='0' && str[index] <='9'){
+			int num = 0;
+			while (index < str.size() && isdigit(str[index])){
+				num = num * 10 + (str[index] - '0');
+				++index;
+			}
+			++curruntcount;
+			if (curop == '+'){
+				currenval += num;
+			}
+			else if (curop == '-'){
+				if (curruntcount == 1){
+					currenval += num;
+				}
+				else if(curruntcount == 2){
+					currenval -= num;
+				}
+				else{
+					bValid = false;
+					break;
+				}
+			}
+			else if(curop =='*'){
+				if (curruntcount>1)
+				currenval *= num;
+				else{
+					currenval = num;
+				}
+			}
+			else{
+				bValid = false;
+				break;
+			}
+		}
+		else{//' '
+			++index;
+		}
+	}
+	if (bValid && lastNum.empty()) cout << currenval << endl;
+	else cout << invalidStr << endl;
+}
+
+int main()
+{
+	string str = "(- 2)";
+	solved(str);
+	system("pause");
+	return 0;
+}
