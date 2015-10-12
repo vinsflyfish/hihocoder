@@ -1,0 +1,96 @@
+The 3v3 mode is a new PvP mode in Battle to the West. In this mode, a player needs to choose a hero to play first. And then all online players are randomly grouped in sixes. Each group has exactly 6 players and corresponds to a new game. In the new game, the 6 players are further randomly divided into 2 opposing teams, each of which has 3 players.
+
+To make the gameplay fair and fun, no two players choosing the same hero should appear in a single team. As a developer of this game, you may design the way of grouping all online players, and the way of dividing players into teams. Then a problem arises. What is the maximum number of games (or groups) that could possibly be generated from online players satisfying all above constraints?
+
+To make the problem clear, we assume that there are H distinct heroes, named from hero1 to heroH. A player must choose exactly one from the H heroes. The number of players choosing heroi is ai. Given H and ai, you need to write a program to find the maximum number of games that could be grouped by these players.
+
+输入
+The input contains several test cases.
+
+The first line contains T(T ≤ 100), the number of the test cases.
+
+The following T lines each start with an integer H(1 ≤ H ≤ 1000), which is the number of possible choices for hero. Then H integers (a1 … aH) follow, where ai (ai > 0) is the number of players who choose the i-th hero. It is guaranteed that the sum of ai will no more than 200000.
+
+输出
+For each test case, please output the maximum number of games that could be grouped by the players.
+
+提示
+For the 1st test case, there are 6 online players choosing 6 different heroes. So 1 game can be formed.
+
+For the 2nd test case, we can divide the 6 heroes into 2 teams: (1, 2, 3) and (1, 2, 3). So no 2 heroes appear in a single team, and 1 game can be formed.
+
+There are 7 players in the 3rd test case, but a game has exactly 6 players. The extra player is in no team.
+
+For the 4th test case, there are 3 players choosing the hero3. So no game could be formed.
+
+样例输入
+4
+6 1 1 1 1 1 1
+3 2 2 2
+3 2 2 3
+3 1 2 3
+样例输出
+1
+1
+1
+0
+
+
+
+
+#include<iostream>
+#include<vector>
+#include<cstdlib>
+#include<string>
+#include<cstdio>
+#include<algorithm>
+#include<stack>
+
+using namespace std;
+
+void solved(vector<int> &data){
+	int result = 0;
+	int cur = 0;
+	int nSize = data.size();
+	sort(data.begin(), data.end());
+	cur = *data.begin();
+	int start = 0;
+	int src = 0;
+	int index = 0;
+	int lastZero = 0;
+	bool bFind = false;
+	while (index < data.size()){
+		data[index] -= cur;
+		if (data[index] > 0 && !bFind){
+			lastZero = index;
+			bFind = true;
+		}
+		else if (data[index] < 0){
+			break;
+		}
+		if (index - start + 1 < nSize){
+			++index;
+		}
+		else{
+			result += (cur);
+			if (bFind)
+				index = lastZero;
+			else
+				++index;
+			if (index >= nSize) break;
+			start = index;
+			cur = data[start];
+			bFind = false;
+		}
+	}
+	cout << result << endl;
+	
+}
+
+int main()
+{
+	vector<int> data = { 1,2,3 };
+	solved(data);
+	system("pause");
+	return 0;
+}
